@@ -1,0 +1,188 @@
+import DashboardLayout from "@/components/DashboardLayout";
+import StatCard from "@/components/StatCard";
+import { FileText, Users, Home, Search, Plus, Download, Upload, Eye } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
+
+const mockKK = [
+  { id: "KK-1", noKK: "3201010101010001", namaKepala: "Budi Santoso", alamat: "Jl. Mawar No.1", rt: "005", kelurahan: "Sukamaju", kecamatan: "Cimanggis", kabupaten: "Depok", provinsi: "Jawa Barat", status: "aktif", jumlahAnggota: 4, pdfUrl: "" },
+  { id: "KK-2", noKK: "3201010101010002", namaKepala: "Ahmad Fauzi", alamat: "Jl. Melati No.3", rt: "005", kelurahan: "Sukamaju", kecamatan: "Cimanggis", kabupaten: "Depok", provinsi: "Jawa Barat", status: "aktif", jumlahAnggota: 2, pdfUrl: "" },
+  { id: "KK-3", noKK: "3201010101010003", namaKepala: "Dewi Lestari", alamat: "Jl. Anggrek No.5", rt: "005", kelurahan: "Sukamaju", kecamatan: "Cimanggis", kabupaten: "Depok", provinsi: "Jawa Barat", status: "aktif", jumlahAnggota: 3, pdfUrl: "" },
+  { id: "KK-4", noKK: "-", namaKepala: "Rumah C-03", alamat: "Jl. Kenanga No.7", rt: "005", kelurahan: "Sukamaju", kecamatan: "Cimanggis", kabupaten: "Depok", provinsi: "Jawa Barat", status: "kosong", jumlahAnggota: 0, pdfUrl: "" },
+];
+
+const KartuKeluarga = () => {
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [inputMode, setInputMode] = useState<"manual" | "upload">("manual");
+
+  const filtered = mockKK.filter(k => {
+    const matchSearch = k.namaKepala.toLowerCase().includes(search.toLowerCase()) || k.noKK.includes(search);
+    const matchStatus = filterStatus === "all" || k.status === filterStatus;
+    return matchSearch && matchStatus;
+  });
+
+  return (
+    <DashboardLayout>
+      <div className="module-page-header flex items-start justify-between">
+        <div>
+          <h1 className="module-page-title">Kartu Keluarga</h1>
+          <p className="module-page-subtitle">Kelola data Kartu Keluarga warga RT</p>
+        </div>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button className="gradient-primary gap-1"><Plus className="w-4 h-4" /> Tambah KK</Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Tambah Kartu Keluarga</DialogTitle>
+            </DialogHeader>
+            <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as "manual" | "upload")} className="mt-4">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="manual">Input Manual</TabsTrigger>
+                <TabsTrigger value="upload">Upload PDF</TabsTrigger>
+              </TabsList>
+              <TabsContent value="upload" className="space-y-4">
+                <div className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:bg-muted/50 transition-colors">
+                  <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-3" />
+                  <p className="text-sm font-medium">Upload file KK (PDF)</p>
+                  <p className="text-xs text-muted-foreground mt-1">Drag & drop atau klik untuk memilih file</p>
+                  <Input type="file" className="hidden" accept=".pdf" />
+                </div>
+                <p className="text-xs text-muted-foreground">* Data akan otomatis terisi setelah upload berhasil</p>
+              </TabsContent>
+              <TabsContent value="manual" className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2 col-span-2">
+                    <Label>No. Kartu Keluarga</Label>
+                    <Input placeholder="16 digit No. KK" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Nama Kepala Keluarga</Label>
+                    <Input placeholder="Nama lengkap" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Alamat</Label>
+                    <Input placeholder="Alamat lengkap" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>RT</Label>
+                    <Input placeholder="005" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Kelurahan</Label>
+                    <Input placeholder="Kelurahan" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Kecamatan</Label>
+                    <Input placeholder="Kecamatan" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Kabupaten/Kota</Label>
+                    <Input placeholder="Kabupaten/Kota" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Provinsi</Label>
+                    <Input placeholder="Provinsi" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Kode Pos</Label>
+                    <Input placeholder="Kode pos" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Status</Label>
+                    <Select>
+                      <SelectTrigger><SelectValue placeholder="Pilih" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="aktif">Aktif</SelectItem>
+                        <SelectItem value="kosong">Kosong/Belum Berpenghuni</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="outline">Batal</Button>
+              <Button className="gradient-primary">Simpan</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <StatCard title="Total KK" value={68} icon={FileText} gradient="gradient-primary" />
+        <StatCard title="KK Aktif" value={62} icon={Users} gradient="gradient-success" />
+        <StatCard title="Kosong/Belum Huni" value={6} icon={Home} gradient="gradient-warning" />
+        <StatCard title="Total Anggota" value={256} icon={Users} gradient="gradient-info" />
+      </div>
+
+      <div className="data-table-wrapper">
+        <div className="p-4 flex flex-col sm:flex-row gap-3 border-b">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input placeholder="Cari No. KK atau Kepala Keluarga..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+          </div>
+          <div className="flex gap-2">
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua</SelectItem>
+                <SelectItem value="aktif">Aktif</SelectItem>
+                <SelectItem value="kosong">Kosong</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline" size="icon"><Download className="w-4 h-4" /></Button>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>#</TableHead>
+                <TableHead>No. KK</TableHead>
+                <TableHead>Kepala Keluarga</TableHead>
+                <TableHead className="hidden md:table-cell">Alamat</TableHead>
+                <TableHead>Anggota</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Aksi</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((k, i) => (
+                <TableRow key={k.id} className={k.status === "kosong" ? "opacity-50" : ""}>
+                  <TableCell className="text-muted-foreground">{i + 1}</TableCell>
+                  <TableCell className="font-mono text-xs">{k.noKK}</TableCell>
+                  <TableCell className="font-medium">{k.namaKepala}</TableCell>
+                  <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{k.alamat}</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className="text-xs">{k.jumlahAnggota} jiwa</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={k.status === "kosong" ? "outline" : "default"} className="text-xs">
+                      {k.status === "kosong" ? "Kosong" : "Aktif"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Button variant="outline" size="sm" className="text-xs h-7"><Eye className="w-3 h-3 mr-1" />Detail</Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+};
+
+export default KartuKeluarga;
