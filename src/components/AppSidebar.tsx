@@ -2,7 +2,8 @@ import {
   LayoutDashboard, Users, CreditCard, UserCheck, ClipboardList,
   Megaphone, CalendarDays, FileText, Vote, MessageSquareWarning,
   Network, FilePlus, Settings, Package, Wallet, PiggyBank,
-  Landmark, ShoppingBag, HandHeart, BookOpen, LogOut, Shield
+  Landmark, ShoppingBag, HandHeart, BookOpen, LogOut, Shield,
+  RefreshCw, Home
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -24,7 +25,7 @@ const keuanganItems = [
   { title: "Kas RT", url: "/kas-rt", icon: Wallet },
   { title: "Tabungan", url: "/tabungan", icon: PiggyBank },
   { title: "Pinjaman", url: "/pinjaman", icon: Landmark },
-  { title: "Arisan RT", url: "/arisan", icon: HandHeart },
+  { title: "Arisan RT", url: "/arisan", icon: RefreshCw },
 ];
 
 const layananItems = [
@@ -65,28 +66,32 @@ const menuGroups: MenuGroup[] = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const location = useLocation();
-  const currentPath = location.pathname;
 
   return (
-    <Sidebar collapsible="icon" className="gradient-sidebar border-r-0">
+    <Sidebar collapsible="icon" className="gradient-sidebar border-r border-sidebar-border">
       <SidebarContent>
         {/* Brand */}
-        <div className={`px-4 py-5 flex items-center gap-3 border-b border-sidebar-border ${collapsed ? 'justify-center px-2' : ''}`}>
-          <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center flex-shrink-0">
-            <Shield className="w-4 h-4 text-white" />
+        <div className={`px-4 py-4 flex items-center gap-2.5 border-b border-sidebar-border ${collapsed ? 'justify-center px-2' : ''}`}>
+          <div className="w-[34px] h-[34px] rounded-[9px] gradient-primary flex items-center justify-center flex-shrink-0">
+            <Home className="w-4 h-4 text-primary-foreground" />
           </div>
           {!collapsed && (
             <div>
-              <h2 className="font-bold text-sm text-sidebar-primary-foreground">SI-RT</h2>
-              <span className="gjs-watermark text-sidebar-foreground">GJS 2026</span>
+              <span className="block font-extrabold text-[16px] text-sidebar-primary-foreground" style={{ fontFamily: "'Syne', sans-serif" }}>
+                SiRT
+              </span>
+              <span className="block text-[11px] text-muted-foreground">RT 001</span>
             </div>
           )}
         </div>
 
         {menuGroups.map((group) => (
-          <SidebarGroup key={group.label}>
-            {!collapsed && <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-wider">{group.label}</SidebarGroupLabel>}
+          <SidebarGroup key={group.label} className="py-1">
+            {!collapsed && (
+              <SidebarGroupLabel className="text-muted-foreground/60 text-[10px] font-extrabold uppercase tracking-[1.2px] px-4 py-2">
+                {group.label}
+              </SidebarGroupLabel>
+            )}
             <SidebarGroupContent>
               <SidebarMenu>
                 {group.items.map((item) => (
@@ -95,11 +100,11 @@ export function AppSidebar() {
                       <NavLink
                         to={item.url}
                         end
-                        className="text-sidebar-foreground/70 hover:text-sidebar-primary-foreground hover:bg-sidebar-accent transition-colors"
-                        activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                        className="text-sidebar-foreground/70 hover:text-sidebar-primary-foreground hover:bg-sidebar-accent mx-2 rounded-[9px] py-2 px-3 transition-all text-[13px] font-medium"
+                        activeClassName="bg-gradient-to-r from-primary/20 to-purple/10 text-primary font-semibold"
                       >
-                        <item.icon className="w-4 h-4 mr-2 flex-shrink-0" />
-                        {!collapsed && <span className="text-sm">{item.title}</span>}
+                        <item.icon className="w-[18px] h-[18px] mr-2.5 flex-shrink-0" />
+                        {!collapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -109,17 +114,38 @@ export function AppSidebar() {
           </SidebarGroup>
         ))}
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border">
+
+      <SidebarFooter className="border-t border-sidebar-border px-3 py-3">
+        {/* User */}
+        {!collapsed && (
+          <div className="flex items-center gap-2.5 mb-2">
+            <div className="w-[34px] h-[34px] gradient-primary rounded-full flex items-center justify-center text-sm font-bold text-primary-foreground flex-shrink-0">
+              A
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <div className="text-[13px] font-semibold text-sidebar-primary-foreground truncate">Admin</div>
+              <div className="text-[11px] text-muted-foreground">Administrator</div>
+            </div>
+          </div>
+        )}
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <NavLink to="/login" className="text-sidebar-foreground/50 hover:text-destructive transition-colors">
+              <NavLink
+                to="/login"
+                className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors w-full py-2 px-3 text-[13px] font-medium"
+              >
                 <LogOut className="w-4 h-4 mr-2" />
-                {!collapsed && <span className="text-sm">Keluar</span>}
+                {!collapsed && <span>Keluar</span>}
               </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        {!collapsed && (
+          <div className="text-center mt-2">
+            <span className="gjs-watermark text-muted-foreground">GJS 2026</span>
+          </div>
+        )}
       </SidebarFooter>
     </Sidebar>
   );
