@@ -2,107 +2,180 @@ import DashboardLayout from "@/components/DashboardLayout";
 import StatCard from "@/components/StatCard";
 import {
   Users, Home, CreditCard, UserCheck, TrendingUp, TrendingDown,
-  Wallet, AlertTriangle, Baby, PersonStanding
+  Wallet, AlertTriangle, Baby, PersonStanding, FileText, Mail,
+  RefreshCw
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
-const recentActivities = [
-  { id: 1, text: "Iuran bulan Maret dibayar oleh Budi Santoso", time: "2 menit lalu", type: "iuran" },
-  { id: 2, text: "Tamu baru: Andi Pratama (Kunjungan biasa)", time: "15 menit lalu", type: "visitor" },
-  { id: 3, text: "Permohonan surat dari Siti Nurhaliza", time: "1 jam lalu", type: "surat" },
-  { id: 4, text: "Pengumuman baru: Gotong Royong Minggu", time: "3 jam lalu", type: "info" },
-  { id: 5, text: "Pembayaran iuran oleh Hendra W.", time: "5 jam lalu", type: "iuran" },
+const dashboardData = {
+  totalJiwa: 256, totalKK: 78, kkKosong: 3,
+  totalLaki: 132, totalPerem: 124, totalBalita: 18,
+  totalLansia: 22, totalMeninggal: 3, totalJanda: 8,
+  totalDuda: 4, tunggakan: 12, suratPending: 3,
+  pengaduanAktif: 2, saldoKas: 12500000,
+  visitorHariIni: 5,
+};
+
+const recentVisitors = [
+  { nama: "Andi Pratama", keperluan: "Kunjungan biasa", host: "Pak Budi", status: "masuk" },
+  { nama: "Lisa M.", keperluan: "Antar paket", host: "Bu Siti", status: "keluar" },
+  { nama: "Rudi K.", keperluan: "Tamu kerja", host: "Pak Hendra", status: "masuk" },
 ];
 
-const tunggakanWarga = [
-  { nama: "Ahmad Fauzi", bulan: 3, total: "Rp 150.000" },
-  { nama: "Dewi Lestari", bulan: 2, total: "Rp 100.000" },
-  { nama: "Rizky Ramadhan", bulan: 4, total: "Rp 200.000" },
-];
+const ProgressBar = ({ label, value, total, color }: { label: string; value: number; total: number; color: string }) => {
+  const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+  return (
+    <div className="flex items-center gap-2">
+      <span className="w-[75px] text-xs text-muted-foreground flex-shrink-0">{label}</span>
+      <div className="progress-bar flex-1">
+        <div className="progress-fill" style={{ width: `${pct}%`, background: color }} />
+      </div>
+      <span className="w-[30px] text-right text-xs font-bold">{value}</span>
+    </div>
+  );
+};
+
+const rp = (n: number) => "Rp " + n.toLocaleString("id-ID");
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  const d = dashboardData;
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("id-ID", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+
   return (
     <DashboardLayout>
-      <div className="module-page-header">
-        <h1 className="module-page-title">Dashboard</h1>
-        <p className="module-page-subtitle">Selamat datang di Sistem Informasi RT — GJS 2026</p>
+      <div className="module-page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <h1 className="module-page-title">Dashboard — RT 001</h1>
+          <p className="module-page-subtitle">{dateStr}</p>
+        </div>
+        <Button variant="outline" size="sm" className="gap-2 border-border text-muted-foreground hover:text-foreground self-start">
+          <RefreshCw className="w-3.5 h-3.5" /> Refresh
+        </Button>
       </div>
 
-      {/* Warga Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-        <StatCard title="Total Jiwa" value={256} icon={Users} gradient="gradient-primary" />
-        <StatCard title="Total KK" value={78} icon={Home} gradient="gradient-accent" />
-        <StatCard title="Laki-laki" value={132} icon={Users} gradient="gradient-info" />
-        <StatCard title="Perempuan" value={124} icon={Users} gradient="gradient-success" />
-        <StatCard title="Balita" value={18} icon={Baby} gradient="gradient-warning" />
+      {/* Main Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
+        <StatCard title="Total Jiwa" value={d.totalJiwa} icon={Users} gradient="gradient-primary" />
+        <StatCard title="Kartu Keluarga" value={d.totalKK} icon={Home} gradient="gradient-success" />
+        <StatCard title="Rumah Kosong" value={d.kkKosong} icon={Home} gradient="gradient-warning" />
+        <StatCard title="Laki-laki" value={d.totalLaki} icon={Users} gradient="gradient-info" />
+        <StatCard title="Perempuan" value={d.totalPerem} icon={Users} gradient="gradient-purple" />
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <StatCard title="Lansia" value={22} icon={PersonStanding} gradient="gradient-info" />
-        <StatCard title="Meninggal" value={3} icon={Users} gradient="gradient-destructive" subtitle="Tahun ini" />
-        <StatCard title="Janda" value={8} icon={Users} gradient="gradient-warning" />
-        <StatCard title="Duda" value={4} icon={Users} gradient="gradient-warning" />
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
+        <StatCard title="Balita <5thn" value={d.totalBalita} icon={Baby} gradient="gradient-warning" />
+        <StatCard title="Lansia ≥60thn" value={d.totalLansia} icon={PersonStanding} gradient="gradient-info" />
+        <StatCard title="Tunggakan Iuran" value={d.tunggakan} icon={CreditCard} gradient="gradient-destructive" valueColor="text-destructive" />
+        <StatCard title="Surat Pending" value={d.suratPending} icon={Mail} gradient="gradient-warning" />
+        <StatCard title="Saldo Kas RT" value={rp(d.saldoKas)} icon={Wallet} gradient="gradient-success" />
       </div>
 
-      {/* Keuangan Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <StatCard title="Saldo Kas RT" value="Rp 12.5jt" icon={Wallet} gradient="gradient-success" />
-        <StatCard title="Pemasukan Bulan Ini" value="Rp 3.9jt" icon={TrendingUp} gradient="gradient-primary" />
-        <StatCard title="Pengeluaran Bulan Ini" value="Rp 1.2jt" icon={TrendingDown} gradient="gradient-destructive" />
-        <StatCard title="Tunggakan" value="8 Warga" icon={AlertTriangle} gradient="gradient-warning" />
-      </div>
-
-      {/* Visitor & Iuran Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <StatCard title="Tamu Hari Ini" value={5} icon={UserCheck} gradient="gradient-accent" />
-        <StatCard title="Tamu Menginap" value={2} icon={UserCheck} gradient="gradient-info" />
-        <StatCard title="Iuran Terbayar" value="85%" icon={CreditCard} gradient="gradient-success" subtitle="Bulan ini" />
-        <StatCard title="Permohonan Surat" value={3} icon={CreditCard} gradient="gradient-primary" subtitle="Menunggu" />
-      </div>
-
-      {/* Recent Activity & Tunggakan */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Aktivitas Terbaru</CardTitle>
+      {/* Cards Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Komposisi Warga */}
+        <Card className="bg-card border-border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-bold flex items-center gap-2">
+              <span className="icon-bg-blue w-6 h-6 rounded-md flex items-center justify-center text-xs">📊</span>
+              Komposisi Warga
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {recentActivities.map((activity) => (
-              <div key={activity.id} className="flex items-start gap-3 text-sm">
-                <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
-                  activity.type === 'iuran' ? 'bg-success' :
-                  activity.type === 'visitor' ? 'bg-accent' :
-                  activity.type === 'surat' ? 'bg-primary' : 'bg-warning'
-                }`} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-foreground">{activity.text}</p>
-                  <p className="text-xs text-muted-foreground">{activity.time}</p>
-                </div>
-              </div>
-            ))}
+          <CardContent className="space-y-2.5">
+            <ProgressBar label="Laki-laki" value={d.totalLaki} total={d.totalJiwa} color="hsl(187 92% 42%)" />
+            <ProgressBar label="Perempuan" value={d.totalPerem} total={d.totalJiwa} color="hsl(258 90% 66%)" />
+            <ProgressBar label="Balita" value={d.totalBalita} total={d.totalJiwa} color="hsl(38 92% 50%)" />
+            <ProgressBar label="Lansia" value={d.totalLansia} total={d.totalJiwa} color="hsl(24 95% 53%)" />
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-warning" />
-              Tunggakan Iuran
+        {/* Notifikasi */}
+        <Card className="bg-card border-border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-bold flex items-center gap-2">
+              <span className="icon-bg-yellow w-6 h-6 rounded-md flex items-center justify-center text-xs">🔔</span>
+              Notifikasi Penting
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {tunggakanWarga.map((warga, i) => (
-                <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                  <div>
-                    <p className="font-medium text-sm text-foreground">{warga.nama}</p>
-                    <p className="text-xs text-muted-foreground">{warga.bulan} bulan tunggakan</p>
-                  </div>
-                  <Badge variant="destructive" className="text-xs">{warga.total}</Badge>
-                </div>
-              ))}
+          <CardContent className="space-y-2.5 text-[13px]">
+            {d.tunggakan > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="badge-status b-red"><CreditCard className="w-3 h-3" /> {d.tunggakan}</span>
+                <span className="text-muted-foreground">tagihan belum dibayar</span>
+              </div>
+            )}
+            {d.suratPending > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="badge-status b-yellow"><Mail className="w-3 h-3" /> {d.suratPending}</span>
+                <span className="text-muted-foreground">surat pending</span>
+              </div>
+            )}
+            {d.kkKosong > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="badge-status b-yellow"><Home className="w-3 h-3" /> {d.kkKosong}</span>
+                <span className="text-muted-foreground">rumah kosong</span>
+              </div>
+            )}
+            {d.pengaduanAktif > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="badge-status b-red"><AlertTriangle className="w-3 h-3" /> {d.pengaduanAktif}</span>
+                <span className="text-muted-foreground">pengaduan aktif</span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Rekap Iuran */}
+        <Card className="bg-card border-border">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-bold flex items-center gap-2">
+                <span className="icon-bg-green w-6 h-6 rounded-md flex items-center justify-center text-xs">💰</span>
+                Rekap Iuran
+              </CardTitle>
+              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-primary" onClick={() => navigate("/iuran")}>
+                Lihat →
+              </Button>
             </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-between text-[13px] mb-2">
+              <span className="text-muted-foreground">Tunggakan aktif:</span>
+              <span className="text-destructive font-bold">{d.tunggakan} tagihan</span>
+            </div>
+            <button onClick={() => navigate("/iuran")} className="text-primary text-xs hover:underline">
+              → Lihat detail tunggakan
+            </button>
+          </CardContent>
+        </Card>
+
+        {/* Tamu Hari Ini */}
+        <Card className="bg-card border-border">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-bold flex items-center gap-2">
+                <span className="icon-bg-cyan w-6 h-6 rounded-md flex items-center justify-center text-xs">🚶</span>
+                Tamu Hari Ini
+              </CardTitle>
+              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-primary" onClick={() => navigate("/e-visitor")}>
+                Lihat →
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-0">
+            {recentVisitors.map((v, i) => (
+              <div key={i} className="flex items-center justify-between py-2 border-b border-border last:border-0 text-xs">
+                <div>
+                  <div className="font-bold text-[13px]">{v.nama}</div>
+                  <div className="text-muted-foreground">{v.keperluan} → {v.host}</div>
+                </div>
+                <span className={`badge-status ${v.status === "masuk" ? "b-blue" : "b-gray"}`}>{v.status}</span>
+              </div>
+            ))}
           </CardContent>
         </Card>
       </div>
