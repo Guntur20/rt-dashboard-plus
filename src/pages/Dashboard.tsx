@@ -3,7 +3,7 @@ import StatCard from "@/components/StatCard";
 import {
   Users, Home, CreditCard, UserCheck, TrendingUp, TrendingDown,
   Wallet, AlertTriangle, Baby, PersonStanding, FileText, Mail,
-  Mars, Venus, RefreshCw
+  RefreshCw
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
