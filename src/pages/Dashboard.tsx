@@ -63,8 +63,8 @@ const Dashboard = () => {
         <StatCard title="Total Jiwa" value={d.totalJiwa} icon={Users} gradient="gradient-primary" />
         <StatCard title="Kartu Keluarga" value={d.totalKK} icon={Home} gradient="gradient-success" />
         <StatCard title="Rumah Kosong" value={d.kkKosong} icon={Home} gradient="gradient-warning" />
-        <StatCard title="Laki-laki" value={d.totalLaki} icon={Mars} gradient="gradient-info" />
-        <StatCard title="Perempuan" value={d.totalPerem} icon={Venus} gradient="gradient-purple" />
+        <StatCard title="Laki-laki" value={d.totalLaki} icon={Users} gradient="gradient-info" />
+        <StatCard title="Perempuan" value={d.totalPerem} icon={Users} gradient="gradient-purple" />
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
