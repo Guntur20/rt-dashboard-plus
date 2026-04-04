@@ -1,6 +1,6 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import StatCard from "@/components/StatCard";
-import { Wallet, TrendingUp, TrendingDown, DollarSign, Plus, Download, Search, FileSpreadsheet } from "lucide-react";
+import { Wallet, TrendingUp, TrendingDown, DollarSign, Plus, Download, Search, FileSpreadsheet, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -11,8 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
-const mockKas = [
+const initialKas = [
   { id: "KAS-1", tanggal: "2026-03-28", jenis: "masuk", kategori: "Iuran Warga", keterangan: "Iuran Maret - Budi Santoso", jumlah: 50000, saldo: 5250000 },
   { id: "KAS-2", tanggal: "2026-03-27", jenis: "keluar", kategori: "Operasional", keterangan: "Pembelian alat kebersihan", jumlah: 150000, saldo: 5200000 },
   { id: "KAS-3", tanggal: "2026-03-26", jenis: "masuk", kategori: "Iuran Warga", keterangan: "Iuran Maret - Ahmad Fauzi", jumlah: 50000, saldo: 5350000 },
@@ -32,14 +33,23 @@ const mockGL = [
 const KasRT = () => {
   const [search, setSearch] = useState("");
   const [filterJenis, setFilterJenis] = useState("all");
+  const [kasList, setKasList] = useState(initialKas);
+  const [editItem, setEditItem] = useState<typeof initialKas[0] | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const { toast } = useToast();
 
-  const filtered = mockKas.filter(k => {
+  const filtered = kasList.filter(k => {
     const matchSearch = k.keterangan.toLowerCase().includes(search.toLowerCase());
     const matchJenis = filterJenis === "all" || k.jenis === filterJenis;
     return matchSearch && matchJenis;
   });
 
   const formatRp = (n: number) => `Rp ${n.toLocaleString("id-ID")}`;
+
+  const handleDelete = (id: string) => {
+    setKasList(prev => prev.filter(k => k.id !== id));
+    toast({ title: "Berhasil", description: "Transaksi dihapus" });
+  };
 
   return (
     <DashboardLayout>
@@ -55,51 +65,26 @@ const KasRT = () => {
               <Button className="gradient-primary gap-1"><Plus className="w-4 h-4" /> Tambah Transaksi</Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Tambah Transaksi Kas</DialogTitle>
-              </DialogHeader>
+              <DialogHeader><DialogTitle>Tambah Transaksi Kas</DialogTitle></DialogHeader>
               <div className="space-y-4 mt-4">
-                <div className="space-y-2">
-                  <Label>Jenis Transaksi</Label>
-                  <Select>
-                    <SelectTrigger><SelectValue placeholder="Pilih jenis" /></SelectTrigger>
+                <div className="space-y-2"><Label>Jenis Transaksi</Label>
+                  <Select><SelectTrigger><SelectValue placeholder="Pilih jenis" /></SelectTrigger>
+                    <SelectContent><SelectItem value="masuk">Pemasukan</SelectItem><SelectItem value="keluar">Pengeluaran</SelectItem></SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2"><Label>Tanggal</Label><Input type="date" /></div>
+                <div className="space-y-2"><Label>Kategori</Label>
+                  <Select><SelectTrigger><SelectValue placeholder="Pilih kategori" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="masuk">Pemasukan</SelectItem>
-                      <SelectItem value="keluar">Pengeluaran</SelectItem>
+                      <SelectItem value="iuran">Iuran Warga</SelectItem><SelectItem value="operasional">Operasional</SelectItem>
+                      <SelectItem value="keamanan">Keamanan</SelectItem><SelectItem value="kebersihan">Kebersihan</SelectItem>
+                      <SelectItem value="mushalla">Mushalla</SelectItem><SelectItem value="sumbangan">Sumbangan</SelectItem><SelectItem value="lainnya">Lainnya</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label>Tanggal</Label>
-                  <Input type="date" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Kategori</Label>
-                  <Select>
-                    <SelectTrigger><SelectValue placeholder="Pilih kategori" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="iuran">Iuran Warga</SelectItem>
-                      <SelectItem value="operasional">Operasional</SelectItem>
-                      <SelectItem value="keamanan">Keamanan</SelectItem>
-                      <SelectItem value="kebersihan">Kebersihan</SelectItem>
-                      <SelectItem value="mushalla">Mushalla</SelectItem>
-                      <SelectItem value="sumbangan">Sumbangan</SelectItem>
-                      <SelectItem value="lainnya">Lainnya</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Jumlah (Rp)</Label>
-                  <Input type="number" placeholder="0" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Keterangan</Label>
-                  <Textarea placeholder="Detail transaksi" />
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline">Batal</Button>
-                  <Button className="gradient-primary">Simpan</Button>
-                </div>
+                <div className="space-y-2"><Label>Jumlah (Rp)</Label><Input type="number" placeholder="0" /></div>
+                <div className="space-y-2"><Label>Keterangan</Label><Textarea placeholder="Detail transaksi" /></div>
+                <div className="flex justify-end gap-2"><Button variant="outline">Batal</Button><Button className="gradient-primary">Simpan</Button></div>
               </div>
             </DialogContent>
           </Dialog>
@@ -128,24 +113,15 @@ const KasRT = () => {
               </div>
               <Select value={filterJenis} onValueChange={setFilterJenis}>
                 <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua</SelectItem>
-                  <SelectItem value="masuk">Pemasukan</SelectItem>
-                  <SelectItem value="keluar">Pengeluaran</SelectItem>
-                </SelectContent>
+                <SelectContent><SelectItem value="all">Semua</SelectItem><SelectItem value="masuk">Pemasukan</SelectItem><SelectItem value="keluar">Pengeluaran</SelectItem></SelectContent>
               </Select>
             </div>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>#</TableHead>
-                    <TableHead>Tanggal</TableHead>
-                    <TableHead>Jenis</TableHead>
-                    <TableHead>Kategori</TableHead>
-                    <TableHead>Keterangan</TableHead>
-                    <TableHead className="text-right">Jumlah</TableHead>
-                    <TableHead className="text-right">Saldo</TableHead>
+                    <TableHead>#</TableHead><TableHead>Tanggal</TableHead><TableHead>Jenis</TableHead><TableHead>Kategori</TableHead>
+                    <TableHead>Keterangan</TableHead><TableHead className="text-right">Jumlah</TableHead><TableHead className="text-right">Saldo</TableHead><TableHead>Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -153,17 +129,17 @@ const KasRT = () => {
                     <TableRow key={k.id}>
                       <TableCell className="text-muted-foreground">{i + 1}</TableCell>
                       <TableCell className="text-sm">{k.tanggal}</TableCell>
-                      <TableCell>
-                        <Badge className={`text-xs ${k.jenis === "masuk" ? "bg-success" : "bg-destructive"}`}>
-                          {k.jenis === "masuk" ? "Masuk" : "Keluar"}
-                        </Badge>
-                      </TableCell>
+                      <TableCell><Badge className={`text-xs ${k.jenis === "masuk" ? "bg-success" : "bg-destructive"}`}>{k.jenis === "masuk" ? "Masuk" : "Keluar"}</Badge></TableCell>
                       <TableCell className="text-sm">{k.kategori}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{k.keterangan}</TableCell>
-                      <TableCell className={`text-right font-medium text-sm ${k.jenis === "masuk" ? "text-green-600" : "text-red-600"}`}>
-                        {k.jenis === "masuk" ? "+" : "-"}{formatRp(k.jumlah)}
-                      </TableCell>
+                      <TableCell className={`text-right font-medium text-sm ${k.jenis === "masuk" ? "text-green-600" : "text-red-600"}`}>{k.jenis === "masuk" ? "+" : "-"}{formatRp(k.jumlah)}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{formatRp(k.saldo)}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button variant="outline" size="sm" className="h-7 w-7 p-0" onClick={() => { setEditItem(k); setEditOpen(true); }}><Pencil className="w-3 h-3" /></Button>
+                          <Button variant="outline" size="sm" className="h-7 w-7 p-0 text-destructive hover:text-destructive" onClick={() => handleDelete(k.id)}><Trash2 className="w-3 h-3" /></Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -181,12 +157,7 @@ const KasRT = () => {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Kategori</TableHead>
-                    <TableHead className="text-right">Debit (Masuk)</TableHead>
-                    <TableHead className="text-right">Kredit (Keluar)</TableHead>
-                    <TableHead className="text-right">Saldo</TableHead>
-                  </TableRow>
+                  <TableRow><TableHead>Kategori</TableHead><TableHead className="text-right">Debit (Masuk)</TableHead><TableHead className="text-right">Kredit (Keluar)</TableHead><TableHead className="text-right">Saldo</TableHead></TableRow>
                 </TableHeader>
                 <TableBody>
                   {mockGL.map((g) => (
@@ -209,6 +180,24 @@ const KasRT = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Edit Transaksi</DialogTitle></DialogHeader>
+          {editItem && (
+            <div className="space-y-4 mt-4">
+              <div className="space-y-2"><Label>Tanggal</Label><Input type="date" defaultValue={editItem.tanggal} /></div>
+              <div className="space-y-2"><Label>Kategori</Label><Input defaultValue={editItem.kategori} /></div>
+              <div className="space-y-2"><Label>Jumlah</Label><Input type="number" defaultValue={editItem.jumlah} /></div>
+              <div className="space-y-2"><Label>Keterangan</Label><Textarea defaultValue={editItem.keterangan} /></div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setEditOpen(false)}>Batal</Button>
+                <Button className="gradient-primary" onClick={() => { setEditOpen(false); toast({ title: "Berhasil", description: "Transaksi diupdate" }); }}>Simpan</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };

@@ -1,6 +1,6 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import StatCard from "@/components/StatCard";
-import { Users, User, Baby, PersonStanding, Search, Plus, Download, Filter } from "lucide-react";
+import { Users, User, Baby, Search, Plus, Download, Filter, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -9,26 +9,36 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
-const mockWarga = [
+const initialWarga = [
   { id: 1, nik: "3201010101010001", nama: "Budi Santoso", jk: "L", ttl: "Jakarta, 15-03-1985", status: "Kawin", pekerjaan: "Wiraswasta", noKK: "3201010101010001", blok: "A-01" },
   { id: 2, nik: "3201010101010002", nama: "Siti Nurhaliza", jk: "P", ttl: "Bandung, 22-07-1988", status: "Kawin", pekerjaan: "IRT", noKK: "3201010101010001", blok: "A-01" },
   { id: 3, nik: "3201010101010003", nama: "Ahmad Fauzi", jk: "L", ttl: "Surabaya, 01-12-1990", status: "Belum Kawin", pekerjaan: "Karyawan", noKK: "3201010101010002", blok: "A-02" },
   { id: 4, nik: "3201010101010004", nama: "Dewi Lestari", jk: "P", ttl: "Medan, 10-05-1975", status: "Janda", pekerjaan: "Pedagang", noKK: "3201010101010003", blok: "B-01" },
   { id: 5, nik: "3201010101010005", nama: "Hendra Wijaya", jk: "L", ttl: "Semarang, 30-08-1992", status: "Kawin", pekerjaan: "PNS", noKK: "3201010101010004", blok: "B-02" },
   { id: 6, nik: "3201010101010006", nama: "Rina Marlina", jk: "P", ttl: "Yogyakarta, 14-11-1995", status: "Belum Kawin", pekerjaan: "Mahasiswa", noKK: "3201010101010004", blok: "B-02" },
-  { id: 7, nik: "3201010101010007", nama: "Kosong", jk: "-", ttl: "-", status: "Kosong", pekerjaan: "-", noKK: "-", blok: "C-03" },
+  { id: 7, nik: "-", nama: "Kosong", jk: "-", ttl: "-", status: "Kosong", pekerjaan: "-", noKK: "-", blok: "C-03" },
 ];
 
 const DataWarga = () => {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [wargaList, setWargaList] = useState(initialWarga);
+  const [editWarga, setEditWarga] = useState<typeof initialWarga[0] | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const { toast } = useToast();
 
-  const filtered = mockWarga.filter(w => {
+  const filtered = wargaList.filter(w => {
     const matchSearch = w.nama.toLowerCase().includes(search.toLowerCase()) || w.nik.includes(search);
     const matchStatus = filterStatus === "all" || w.status.toLowerCase() === filterStatus;
     return matchSearch && matchStatus;
   });
+
+  const handleDelete = (id: number) => {
+    setWargaList(prev => prev.filter(w => w.id !== id));
+    toast({ title: "Berhasil", description: "Data warga berhasil dihapus" });
+  };
 
   return (
     <DashboardLayout>
@@ -48,19 +58,11 @@ const DataWarga = () => {
         <div className="p-4 flex flex-col sm:flex-row gap-3 border-b">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Cari nama atau NIK..."
-              className="pl-9"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+            <Input placeholder="Cari nama atau NIK..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <div className="flex gap-2">
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[140px]">
-                <Filter className="w-4 h-4 mr-1" />
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
+              <SelectTrigger className="w-[140px]"><Filter className="w-4 h-4 mr-1" /><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua</SelectItem>
                 <SelectItem value="kawin">Kawin</SelectItem>
@@ -76,56 +78,24 @@ const DataWarga = () => {
                 <Button className="gradient-primary gap-1"><Plus className="w-4 h-4" /> Tambah</Button>
               </DialogTrigger>
               <DialogContent className="max-w-lg">
-                <DialogHeader>
-                  <DialogTitle>Tambah Data Warga</DialogTitle>
-                </DialogHeader>
+                <DialogHeader><DialogTitle>Tambah Data Warga</DialogTitle></DialogHeader>
                 <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div className="space-y-2">
-                    <Label>NIK</Label>
-                    <Input placeholder="Nomor Induk Kependudukan" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Nama Lengkap</Label>
-                    <Input placeholder="Nama lengkap" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Jenis Kelamin</Label>
-                    <Select>
-                      <SelectTrigger><SelectValue placeholder="Pilih" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="L">Laki-laki</SelectItem>
-                        <SelectItem value="P">Perempuan</SelectItem>
-                      </SelectContent>
+                  <div className="space-y-2"><Label>NIK</Label><Input placeholder="Nomor Induk Kependudukan" /></div>
+                  <div className="space-y-2"><Label>Nama Lengkap</Label><Input placeholder="Nama lengkap" /></div>
+                  <div className="space-y-2"><Label>Jenis Kelamin</Label>
+                    <Select><SelectTrigger><SelectValue placeholder="Pilih" /></SelectTrigger>
+                      <SelectContent><SelectItem value="L">Laki-laki</SelectItem><SelectItem value="P">Perempuan</SelectItem></SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Tempat, Tanggal Lahir</Label>
-                    <Input placeholder="Kota, DD-MM-YYYY" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Status</Label>
-                    <Select>
-                      <SelectTrigger><SelectValue placeholder="Pilih" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="kawin">Kawin</SelectItem>
-                        <SelectItem value="belum_kawin">Belum Kawin</SelectItem>
-                        <SelectItem value="janda">Janda</SelectItem>
-                        <SelectItem value="duda">Duda</SelectItem>
-                      </SelectContent>
+                  <div className="space-y-2"><Label>Tempat, Tanggal Lahir</Label><Input placeholder="Kota, DD-MM-YYYY" /></div>
+                  <div className="space-y-2"><Label>Status</Label>
+                    <Select><SelectTrigger><SelectValue placeholder="Pilih" /></SelectTrigger>
+                      <SelectContent><SelectItem value="kawin">Kawin</SelectItem><SelectItem value="belum_kawin">Belum Kawin</SelectItem><SelectItem value="janda">Janda</SelectItem><SelectItem value="duda">Duda</SelectItem></SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Pekerjaan</Label>
-                    <Input placeholder="Pekerjaan" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>No. KK</Label>
-                    <Input placeholder="Nomor KK" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Blok/Rumah</Label>
-                    <Input placeholder="Contoh: A-01" />
-                  </div>
+                  <div className="space-y-2"><Label>Pekerjaan</Label><Input placeholder="Pekerjaan" /></div>
+                  <div className="space-y-2"><Label>No. KK</Label><Input placeholder="Nomor KK" /></div>
+                  <div className="space-y-2"><Label>Blok/Rumah</Label><Input placeholder="Contoh: A-01" /></div>
                 </div>
                 <div className="flex justify-end gap-2 mt-4">
                   <Button variant="outline">Batal</Button>
@@ -148,6 +118,7 @@ const DataWarga = () => {
                 <TableHead>Status</TableHead>
                 <TableHead className="hidden md:table-cell">Pekerjaan</TableHead>
                 <TableHead>Blok</TableHead>
+                <TableHead>Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -156,25 +127,50 @@ const DataWarga = () => {
                   <TableCell className="text-muted-foreground">{i + 1}</TableCell>
                   <TableCell className="font-mono text-xs">{w.nik}</TableCell>
                   <TableCell className="font-medium">{w.nama}</TableCell>
-                  <TableCell>
-                    <Badge variant={w.jk === "L" ? "default" : "secondary"} className="text-xs">
-                      {w.jk}
-                    </Badge>
-                  </TableCell>
+                  <TableCell><Badge variant={w.jk === "L" ? "default" : "secondary"} className="text-xs">{w.jk}</Badge></TableCell>
                   <TableCell className="hidden md:table-cell text-sm">{w.ttl}</TableCell>
-                  <TableCell>
-                    <Badge variant={w.status === "Kosong" ? "outline" : "secondary"} className="text-xs">
-                      {w.status}
-                    </Badge>
-                  </TableCell>
+                  <TableCell><Badge variant={w.status === "Kosong" ? "outline" : "secondary"} className="text-xs">{w.status}</Badge></TableCell>
                   <TableCell className="hidden md:table-cell text-sm">{w.pekerjaan}</TableCell>
                   <TableCell className="font-medium">{w.blok}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Button variant="outline" size="sm" className="h-7 w-7 p-0" onClick={() => { setEditWarga(w); setEditOpen(true); }}><Pencil className="w-3 h-3" /></Button>
+                      <Button variant="outline" size="sm" className="h-7 w-7 p-0 text-destructive hover:text-destructive" onClick={() => handleDelete(w.id)}><Trash2 className="w-3 h-3" /></Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
       </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle>Edit Data Warga</DialogTitle></DialogHeader>
+          {editWarga && (
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div className="space-y-2"><Label>NIK</Label><Input defaultValue={editWarga.nik} /></div>
+              <div className="space-y-2"><Label>Nama</Label><Input defaultValue={editWarga.nama} /></div>
+              <div className="space-y-2"><Label>Jenis Kelamin</Label>
+                <Select defaultValue={editWarga.jk}><SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent><SelectItem value="L">Laki-laki</SelectItem><SelectItem value="P">Perempuan</SelectItem></SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2"><Label>TTL</Label><Input defaultValue={editWarga.ttl} /></div>
+              <div className="space-y-2"><Label>Status</Label><Input defaultValue={editWarga.status} /></div>
+              <div className="space-y-2"><Label>Pekerjaan</Label><Input defaultValue={editWarga.pekerjaan} /></div>
+              <div className="space-y-2"><Label>No. KK</Label><Input defaultValue={editWarga.noKK} /></div>
+              <div className="space-y-2"><Label>Blok</Label><Input defaultValue={editWarga.blok} /></div>
+              <div className="col-span-2 flex justify-end gap-2 mt-2">
+                <Button variant="outline" onClick={() => setEditOpen(false)}>Batal</Button>
+                <Button className="gradient-primary" onClick={() => { setEditOpen(false); toast({ title: "Berhasil", description: "Data warga diupdate" }); }}>Simpan</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };

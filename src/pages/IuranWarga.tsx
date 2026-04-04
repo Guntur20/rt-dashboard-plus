@@ -1,6 +1,6 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import StatCard from "@/components/StatCard";
-import { CreditCard, CheckCircle, AlertTriangle, Wallet, Plus, Download, Search, Filter, Send } from "lucide-react";
+import { CreditCard, CheckCircle, AlertTriangle, Wallet, Plus, Download, Search, Send, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const komponenIuran = [
   { nama: "Sampah", nominal: 20000 },
@@ -19,7 +20,7 @@ const komponenIuran = [
   { nama: "Kas RT", nominal: 10000 },
 ];
 
-const mockIuran = [
+const initialIuran = [
   { id: 1, nama: "Budi Santoso", blok: "A-01", bulan: "Maret 2026", status: "Lunas", tglBayar: "05-03-2026", metode: "Transfer", total: 50000 },
   { id: 2, nama: "Ahmad Fauzi", blok: "A-02", bulan: "Maret 2026", status: "Belum", tglBayar: "-", metode: "-", total: 50000 },
   { id: 3, nama: "Dewi Lestari", blok: "B-01", bulan: "Maret 2026", status: "Belum", tglBayar: "-", metode: "-", total: 50000 },
@@ -36,6 +37,15 @@ const tunggakan = [
 
 const IuranWarga = () => {
   const [search, setSearch] = useState("");
+  const [iuranList, setIuranList] = useState(initialIuran);
+  const [editItem, setEditItem] = useState<typeof initialIuran[0] | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const { toast } = useToast();
+
+  const handleDelete = (id: number) => {
+    setIuranList(prev => prev.filter(i => i.id !== id));
+    toast({ title: "Berhasil", description: "Data iuran dihapus" });
+  };
 
   return (
     <DashboardLayout>
@@ -51,11 +61,8 @@ const IuranWarga = () => {
         <StatCard title="Total Terkumpul" value="Rp 3.1jt" icon={Wallet} gradient="gradient-accent" subtitle="Bulan ini" />
       </div>
 
-      {/* Detail Komponen Iuran */}
       <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-base">Komponen Iuran (Custom)</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="text-base">Komponen Iuran (Custom)</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {komponenIuran.map((k) => (
@@ -67,7 +74,7 @@ const IuranWarga = () => {
           </div>
           <div className="mt-3 flex items-center justify-between p-3 rounded-lg bg-primary/5 border border-primary/20">
             <span className="font-semibold text-sm">Total Iuran per Bulan</span>
-            <Badge className="gradient-primary text-white">Rp {komponenIuran.reduce((a, b) => a + b.nominal, 0).toLocaleString('id-ID')}</Badge>
+            <Badge className="gradient-primary text-primary-foreground">Rp {komponenIuran.reduce((a, b) => a + b.nominal, 0).toLocaleString('id-ID')}</Badge>
           </div>
         </CardContent>
       </Card>
@@ -100,50 +107,28 @@ const IuranWarga = () => {
                     <Button className="gradient-primary gap-1"><Plus className="w-4 h-4" /> Bayar Iuran</Button>
                   </DialogTrigger>
                   <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Pembayaran Iuran</DialogTitle>
-                    </DialogHeader>
+                    <DialogHeader><DialogTitle>Pembayaran Iuran</DialogTitle></DialogHeader>
                     <div className="space-y-4 mt-4">
-                      <div className="space-y-2">
-                        <Label>Nama Warga</Label>
-                        <Select>
-                          <SelectTrigger><SelectValue placeholder="Pilih warga" /></SelectTrigger>
+                      <div className="space-y-2"><Label>Nama Warga</Label>
+                        <Select><SelectTrigger><SelectValue placeholder="Pilih warga" /></SelectTrigger>
+                          <SelectContent><SelectItem value="1">Budi Santoso - A-01</SelectItem><SelectItem value="2">Ahmad Fauzi - A-02</SelectItem></SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2"><Label>Jumlah Bulan</Label>
+                        <Select><SelectTrigger><SelectValue placeholder="Pilih" /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="1">Budi Santoso - A-01</SelectItem>
-                            <SelectItem value="2">Ahmad Fauzi - A-02</SelectItem>
+                            <SelectItem value="1">1 Bulan (Rp 50.000)</SelectItem><SelectItem value="3">3 Bulan (Rp 150.000)</SelectItem>
+                            <SelectItem value="6">6 Bulan (Rp 300.000)</SelectItem><SelectItem value="12">12 Bulan (Rp 600.000)</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="space-y-2">
-                        <Label>Jumlah Bulan</Label>
-                        <Select>
-                          <SelectTrigger><SelectValue placeholder="Pilih" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1">1 Bulan (Rp 50.000)</SelectItem>
-                            <SelectItem value="3">3 Bulan (Rp 150.000)</SelectItem>
-                            <SelectItem value="6">6 Bulan (Rp 300.000)</SelectItem>
-                            <SelectItem value="12">12 Bulan (Rp 600.000)</SelectItem>
-                          </SelectContent>
+                      <div className="space-y-2"><Label>Metode Pembayaran</Label>
+                        <Select><SelectTrigger><SelectValue placeholder="Pilih metode" /></SelectTrigger>
+                          <SelectContent><SelectItem value="cash">Cash</SelectItem><SelectItem value="transfer">Transfer</SelectItem></SelectContent>
                         </Select>
                       </div>
-                      <div className="space-y-2">
-                        <Label>Metode Pembayaran</Label>
-                        <Select>
-                          <SelectTrigger><SelectValue placeholder="Pilih metode" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="cash">Cash</SelectItem>
-                            <SelectItem value="transfer">Transfer</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Upload Bukti Transfer</Label>
-                        <Input type="file" accept="image/*" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Keterangan</Label>
-                        <Input placeholder="Keterangan tambahan" />
-                      </div>
+                      <div className="space-y-2"><Label>Upload Bukti Transfer</Label><Input type="file" accept="image/*" /></div>
+                      <div className="space-y-2"><Label>Keterangan</Label><Input placeholder="Keterangan tambahan" /></div>
                       <div className="flex justify-end gap-2">
                         <Button variant="outline">Batal</Button>
                         <Button className="gradient-primary">Simpan</Button>
@@ -159,18 +144,13 @@ const IuranWarga = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>#</TableHead>
-                    <TableHead>Nama</TableHead>
-                    <TableHead>Blok</TableHead>
-                    <TableHead>Bulan</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="hidden md:table-cell">Tgl Bayar</TableHead>
-                    <TableHead className="hidden md:table-cell">Metode</TableHead>
-                    <TableHead>Total</TableHead>
+                    <TableHead>#</TableHead><TableHead>Nama</TableHead><TableHead>Blok</TableHead><TableHead>Bulan</TableHead>
+                    <TableHead>Status</TableHead><TableHead className="hidden md:table-cell">Tgl Bayar</TableHead>
+                    <TableHead className="hidden md:table-cell">Metode</TableHead><TableHead>Total</TableHead><TableHead>Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockIuran.filter(i => i.nama.toLowerCase().includes(search.toLowerCase())).map((item, idx) => (
+                  {iuranList.filter(i => i.nama.toLowerCase().includes(search.toLowerCase())).map((item, idx) => (
                     <TableRow key={item.id}>
                       <TableCell>{idx + 1}</TableCell>
                       <TableCell className="font-medium">{item.nama}</TableCell>
@@ -184,6 +164,12 @@ const IuranWarga = () => {
                       <TableCell className="hidden md:table-cell">{item.tglBayar}</TableCell>
                       <TableCell className="hidden md:table-cell">{item.metode}</TableCell>
                       <TableCell className="font-medium">Rp {item.total.toLocaleString('id-ID')}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button variant="outline" size="sm" className="h-7 w-7 p-0" onClick={() => { setEditItem(item); setEditOpen(true); }}><Pencil className="w-3 h-3" /></Button>
+                          <Button variant="outline" size="sm" className="h-7 w-7 p-0 text-destructive hover:text-destructive" onClick={() => handleDelete(item.id)}><Trash2 className="w-3 h-3" /></Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -195,22 +181,13 @@ const IuranWarga = () => {
         <TabsContent value="tunggakan">
           <div className="data-table-wrapper">
             <div className="p-4 border-b flex items-center justify-between">
-              <h3 className="font-semibold text-sm flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-warning" /> Warga Menunggak
-              </h3>
+              <h3 className="font-semibold text-sm flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-warning" /> Warga Menunggak</h3>
               <Button variant="outline" size="sm" className="gap-1"><Download className="w-4 h-4" /> Export</Button>
             </div>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>#</TableHead>
-                    <TableHead>Nama</TableHead>
-                    <TableHead>Blok</TableHead>
-                    <TableHead>Bulan Tunggak</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Aksi</TableHead>
-                  </TableRow>
+                  <TableRow><TableHead>#</TableHead><TableHead>Nama</TableHead><TableHead>Blok</TableHead><TableHead>Bulan Tunggak</TableHead><TableHead>Total</TableHead><TableHead>Aksi</TableHead></TableRow>
                 </TableHeader>
                 <TableBody>
                   {tunggakan.map((t, i) => (
@@ -218,13 +195,9 @@ const IuranWarga = () => {
                       <TableCell>{i + 1}</TableCell>
                       <TableCell className="font-medium">{t.nama}</TableCell>
                       <TableCell>{t.blok}</TableCell>
-                      <TableCell>
-                        <Badge variant="destructive" className="text-xs">{t.bulanTunggak} bulan</Badge>
-                      </TableCell>
+                      <TableCell><Badge variant="destructive" className="text-xs">{t.bulanTunggak} bulan</Badge></TableCell>
                       <TableCell className="font-bold text-destructive">{t.total}</TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm" className="gap-1 text-xs"><Send className="w-3 h-3" /> Ingatkan</Button>
-                      </TableCell>
+                      <TableCell><Button variant="outline" size="sm" className="gap-1 text-xs"><Send className="w-3 h-3" /> Ingatkan</Button></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -233,6 +206,28 @@ const IuranWarga = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Data Iuran</DialogTitle></DialogHeader>
+          {editItem && (
+            <div className="space-y-4 mt-4">
+              <div className="space-y-2"><Label>Nama</Label><Input defaultValue={editItem.nama} /></div>
+              <div className="space-y-2"><Label>Bulan</Label><Input defaultValue={editItem.bulan} /></div>
+              <div className="space-y-2"><Label>Status</Label>
+                <Select defaultValue={editItem.status}><SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent><SelectItem value="Lunas">Lunas</SelectItem><SelectItem value="Belum">Belum</SelectItem></SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2"><Label>Total</Label><Input type="number" defaultValue={editItem.total} /></div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setEditOpen(false)}>Batal</Button>
+                <Button className="gradient-primary" onClick={() => { setEditOpen(false); toast({ title: "Berhasil", description: "Data iuran diupdate" }); }}>Simpan</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
