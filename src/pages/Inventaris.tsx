@@ -1,6 +1,6 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import StatCard from "@/components/StatCard";
-import { Package, CheckCircle, AlertTriangle, DollarSign, Plus, Search } from "lucide-react";
+import { Package, CheckCircle, AlertTriangle, DollarSign, Plus, Search, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -10,8 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
-const mockInventaris = [
+const initialInventaris = [
   { id: "INV-1", nama: "Tenda 4x6m", kode: "TND-001", kategori: "Perlengkapan Acara", jumlah: 3, satuan: "unit", kondisi: "Baik", nilaiPerolehan: 4500000, tanggalBeli: "2024-01-15", lokasi: "Gudang RT", status: "tersedia" },
   { id: "INV-2", nama: "Meja Lipat", kode: "MJL-001", kategori: "Perabotan", jumlah: 20, satuan: "unit", kondisi: "Baik", nilaiPerolehan: 3000000, tanggalBeli: "2023-06-10", lokasi: "Gudang RT", status: "tersedia" },
   { id: "INV-3", nama: "Kursi Plastik", kode: "KRS-001", kategori: "Perabotan", jumlah: 50, satuan: "unit", kondisi: "Sebagian Rusak", nilaiPerolehan: 2500000, tanggalBeli: "2022-12-01", lokasi: "Gudang RT", status: "tersedia" },
@@ -19,23 +20,37 @@ const mockInventaris = [
   { id: "INV-5", nama: "Gerobak Sampah", kode: "GRB-001", kategori: "Kebersihan", jumlah: 2, satuan: "unit", kondisi: "Rusak Ringan", nilaiPerolehan: 1200000, tanggalBeli: "2023-01-05", lokasi: "Pos RT", status: "tersedia" },
 ];
 
-const mockPinjaman = [
+const initialPinjaman = [
   { id: "PNJ-1", barang: "Sound System", peminjam: "Budi Santoso", tglPinjam: "2026-03-25", tglKembali: "-", status: "Dipinjam", keperluan: "Acara pengajian" },
   { id: "PNJ-2", barang: "Tenda 4x6m (2)", peminjam: "Ahmad Fauzi", tglPinjam: "2026-03-20", tglKembali: "2026-03-22", status: "Dikembalikan", keperluan: "Hajatan" },
 ];
 
 const Inventaris = () => {
   const [search, setSearch] = useState("");
+  const [inventarisList, setInventarisList] = useState(initialInventaris);
+  const [pinjamanList, setPinjamanList] = useState(initialPinjaman);
+  const [editItem, setEditItem] = useState<typeof initialInventaris[0] | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const { toast } = useToast();
 
-  const filtered = mockInventaris.filter(i => i.nama.toLowerCase().includes(search.toLowerCase()) || i.kode.toLowerCase().includes(search.toLowerCase()));
-
+  const filtered = inventarisList.filter(i => i.nama.toLowerCase().includes(search.toLowerCase()) || i.kode.toLowerCase().includes(search.toLowerCase()));
   const formatRp = (n: number) => `Rp ${n.toLocaleString("id-ID")}`;
-  const totalNilai = mockInventaris.reduce((a, i) => a + i.nilaiPerolehan, 0);
+  const totalNilai = inventarisList.reduce((a, i) => a + i.nilaiPerolehan, 0);
 
   const kondisiColor = (k: string) => {
     if (k === "Baik") return "bg-success";
     if (k.includes("Rusak Ringan") || k.includes("Sebagian")) return "bg-warning";
     return "bg-destructive";
+  };
+
+  const handleDeleteItem = (id: string) => {
+    setInventarisList(prev => prev.filter(i => i.id !== id));
+    toast({ title: "Berhasil", description: "Barang berhasil dihapus" });
+  };
+
+  const handleDeletePinjaman = (id: string) => {
+    setPinjamanList(prev => prev.filter(p => p.id !== id));
+    toast({ title: "Berhasil", description: "Data pinjaman dihapus" });
   };
 
   return (
@@ -89,9 +104,9 @@ const Inventaris = () => {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <StatCard title="Total Aset" value={mockInventaris.length} icon={Package} gradient="gradient-primary" />
-        <StatCard title="Kondisi Baik" value={mockInventaris.filter(i => i.kondisi === "Baik").length} icon={CheckCircle} gradient="gradient-success" />
-        <StatCard title="Perlu Perhatian" value={mockInventaris.filter(i => i.kondisi !== "Baik").length} icon={AlertTriangle} gradient="gradient-warning" />
+        <StatCard title="Total Aset" value={inventarisList.length} icon={Package} gradient="gradient-primary" />
+        <StatCard title="Kondisi Baik" value={inventarisList.filter(i => i.kondisi === "Baik").length} icon={CheckCircle} gradient="gradient-success" />
+        <StatCard title="Perlu Perhatian" value={inventarisList.filter(i => i.kondisi !== "Baik").length} icon={AlertTriangle} gradient="gradient-warning" />
         <StatCard title="Total Nilai" value={formatRp(totalNilai)} icon={DollarSign} gradient="gradient-info" />
       </div>
 
@@ -121,6 +136,7 @@ const Inventaris = () => {
                     <TableHead>Kondisi</TableHead>
                     <TableHead className="hidden md:table-cell">Nilai</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -134,6 +150,12 @@ const Inventaris = () => {
                       <TableCell><Badge className={`text-xs ${kondisiColor(item.kondisi)}`}>{item.kondisi}</Badge></TableCell>
                       <TableCell className="hidden md:table-cell text-sm">{formatRp(item.nilaiPerolehan)}</TableCell>
                       <TableCell><Badge variant={item.status === "dipinjam" ? "outline" : "secondary"} className="text-xs">{item.status === "dipinjam" ? "Dipinjam" : "Tersedia"}</Badge></TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button variant="outline" size="sm" className="h-7 w-7 p-0" onClick={() => { setEditItem(item); setEditOpen(true); }}><Pencil className="w-3 h-3" /></Button>
+                          <Button variant="outline" size="sm" className="h-7 w-7 p-0 text-destructive hover:text-destructive" onClick={() => handleDeleteItem(item.id)}><Trash2 className="w-3 h-3" /></Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -155,10 +177,11 @@ const Inventaris = () => {
                     <TableHead>Tgl Pinjam</TableHead>
                     <TableHead>Tgl Kembali</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockPinjaman.map((p, i) => (
+                  {pinjamanList.map((p, i) => (
                     <TableRow key={p.id}>
                       <TableCell className="text-muted-foreground">{i + 1}</TableCell>
                       <TableCell className="font-medium">{p.barang}</TableCell>
@@ -167,6 +190,9 @@ const Inventaris = () => {
                       <TableCell className="text-sm">{p.tglPinjam}</TableCell>
                       <TableCell className="text-sm">{p.tglKembali}</TableCell>
                       <TableCell><Badge className={`text-xs ${p.status === "Dipinjam" ? "bg-warning" : "bg-success"}`}>{p.status}</Badge></TableCell>
+                      <TableCell>
+                        <Button variant="outline" size="sm" className="h-7 w-7 p-0 text-destructive hover:text-destructive" onClick={() => handleDeletePinjaman(p.id)}><Trash2 className="w-3 h-3" /></Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -175,6 +201,28 @@ const Inventaris = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Edit Inventaris</DialogTitle></DialogHeader>
+          {editItem && (
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div className="space-y-2"><Label>Nama</Label><Input defaultValue={editItem.nama} /></div>
+              <div className="space-y-2"><Label>Kode</Label><Input defaultValue={editItem.kode} /></div>
+              <div className="space-y-2"><Label>Kategori</Label><Input defaultValue={editItem.kategori} /></div>
+              <div className="space-y-2"><Label>Jumlah</Label><Input type="number" defaultValue={editItem.jumlah} /></div>
+              <div className="space-y-2"><Label>Kondisi</Label><Input defaultValue={editItem.kondisi} /></div>
+              <div className="space-y-2"><Label>Nilai (Rp)</Label><Input type="number" defaultValue={editItem.nilaiPerolehan} /></div>
+              <div className="space-y-2"><Label>Lokasi</Label><Input defaultValue={editItem.lokasi} /></div>
+              <div className="space-y-2"><Label>Tanggal Beli</Label><Input type="date" defaultValue={editItem.tanggalBeli} /></div>
+              <div className="col-span-2 flex justify-end gap-2 mt-2">
+                <Button variant="outline" onClick={() => setEditOpen(false)}>Batal</Button>
+                <Button className="gradient-primary" onClick={() => { setEditOpen(false); toast({ title: "Berhasil", description: "Data inventaris diupdate" }); }}>Simpan</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
