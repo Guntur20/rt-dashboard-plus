@@ -19,14 +19,15 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'npm'
+          node-version: 22 # Menggunakan versi terbaru untuk menghindari warning
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps # Menghindari konflik versi package
 
       - name: Build
         run: npm run build
+        env:
+          VITE_BASE_URL: /rt-dashboard-plus/
 
       - name: Upload Artifacts
         uses: actions/upload-pages-artifact@v3
