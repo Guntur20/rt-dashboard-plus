@@ -5,6 +5,7 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  base: "/rt-dashboard-plus/", // <--- WAJIB TAMBAHKAN INI Sesuai Nama Repo Anda
   server: {
     host: "::",
     port: 8080,
